@@ -1,0 +1,116 @@
+---
+import { img, url, Button, EditUrlPill } from "webto/variant";
+
+interface Props {
+  /** The big word or two behind the jar, ≤3 words. @example Orange Marmalade */
+  headline?: string;
+  /** One sentence under the jar, ≤20 words. @example Irisan jeruk organik, dimasak perlahan dalam panci tembaga. */
+  subheadline?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  /** [0] the jar photo WITHOUT its label, on a transparent background (PNG/WebP), upright and straight-on. [1] the label as printed: the full flat strip that wraps around the jar. @example [{"url":"/r2/s/jar-empty.webp","alt":"Toples selai jeruk"},{"url":"/r2/s/label-flat.webp"}] */
+  images?: Array<{ url: string; alt?: string }>;
+  /** Where the label's top edge sits on the jar photo, in % of the photo height from the top. @example 24 */
+  labelTop?: number;
+  /** The label's height, in % of the photo height. @example 58 */
+  labelHeight?: number;
+  /** The empty glass at each side of the label, in % of the photo width (the jar's edge to the label's edge). @example 4 */
+  labelInset?: number;
+}
+
+const { headline, subheadline, ctaText = "Pesan", ctaUrl = "#", images = [], labelTop = 24, labelHeight = 58, labelInset = 4 } = Astro.props;
+const jar = img(images[0]?.url, 1200);
+const label = img(images[1]?.url, 2000);
+const box = `top: ${labelTop}%; height: ${labelHeight}%; left: ${labelInset}%; right: ${labelInset}%;`;
+---
+<section class="relative h-[220vh] bg-background text-foreground">
+  <div class="sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden px-6">
+    <h1 class="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-bold uppercase leading-none tracking-tight text-primary-text" style="font-size: clamp(3rem, 13vw, 12rem); font-family: var(--font-heading);" data-edit-field="headline">{headline}</h1>
+    <div data-jar class="relative z-10 h-[62vh] max-h-[640px]" style="aspect-ratio: 5 / 8;">
+      {jar ? (
+        <img src={jar} crossorigin="anonymous" alt={images[0]?.alt ?? ""} data-edit-image="images.0.url" class="absolute inset-0 h-full w-full object-contain" />
+      ) : (
+        <div data-edit-image="images.0.url" class="absolute inset-0 rounded-3xl bg-muted"></div>
+      )}
+      {label && (
+        <img data-label src={label} crossorigin="anonymous" alt="" data-edit-image="images.1.url" class="absolute object-cover" style={box} />
+      )}
+      <div data-gl data-rect={`${labelTop} ${labelHeight} ${labelInset}`} class="absolute inset-0" aria-hidden="true"></div>
+    </div>
+    <div class="relative z-10 mt-8 flex max-w-xl flex-col items-center text-center">
+      {subheadline && <p data-edit-field="subheadline" class="text-lg text-muted-foreground">{subheadline}</p>}
+      {ctaText && (
+        <Button href={url(ctaUrl)} size="lg" class="relative mt-6">
+          <span data-edit-field="ctaText">{ctaText}</span>
+          <EditUrlPill field="ctaUrl" value={ctaUrl} />
+        </Button>
+      )}
+    </div>
+  </div>
+</section>
+
+<script is:inline data-uses="gsap scroll-trigger ogl">
+  const jarBox = root.querySelector("[data-jar]");
+  const flat = root.querySelector("[data-label]");
+  const host = root.querySelector("[data-gl]");
+  if (!jarBox || !host) return;
+  const turn = { a: 0 };
+  gsap.context(() => {
+    // The jar leans and drifts as the section scrolls by; GSAP alone, with or without WebGL.
+    gsap.fromTo(jarBox, { rotation: 0, yPercent: 0 }, { rotation: -14, yPercent: -6, ease: "none", scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: true } });
+    // One full turn of the label over the section.
+    gsap.to(turn, { a: 1, ease: "none", scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: true } });
+  }, root);
+
+  if (!OGL || !flat) return;
+  if (root.dataset.wvInit) return;
+  root.dataset.wvInit = "1";
+  const parts = (host.dataset.rect || "24 58 4").split(" ").map(Number);
+  const { Renderer, Program, Mesh, Triangle, Texture } = OGL;
+  const renderer = new Renderer({ dpr: window.devicePixelRatio, alpha: true, premultipliedAlpha: false });
+  const gl = renderer.gl;
+  gl.canvas.style.width = "100%";
+  gl.canvas.style.height = "100%";
+  const tLabel = new Texture(gl, { generateMipmaps: false, flipY: false });
+  const program = new Program(gl, {
+    transparent: true,
+    vertex: `attribute vec2 uv; attribute vec2 position; varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 0.0, 1.0); }`,
+    fragment: `precision highp float;
+      uniform sampler2D tLabel; uniform float uTurn; uniform vec4 uRect; varying vec2 vUv;
+      const float PI = 3.14159265;
+      void main() {
+        vec2 p = vec2(vUv.x, 1.0 - vUv.y);
+        float nx = (p.x - uRect.x) / (uRect.z - uRect.x) * 2.0 - 1.0;
+        if (abs(nx) >= 1.0) discard;
+        float theta = asin(nx);
+        float lift = cos(theta) * 0.035;
+        float v = (p.y - uRect.y - lift * (uRect.w - uRect.y)) / (uRect.w - uRect.y);
+        if (v < 0.0 || v > 1.0) discard;
+        float u = fract(uTurn + theta / (2.0 * PI) + 0.5);
+        vec3 c = texture2D(tLabel, vec2(u, v)).rgb;
+        float shade = 0.45 + 0.55 * pow(cos(theta), 0.7);
+        float shine = 0.16 * smoothstep(0.18, 0.0, abs(nx + 0.38));
+        float edge = smoothstep(1.0, 0.94, abs(nx));
+        gl_FragColor = vec4(c * shade + shine, edge);
+      }`,
+    uniforms: { tLabel: { value: tLabel }, uTurn: { value: 0 }, uRect: { value: [0, 0, 1, 1] } },
+  });
+  program.uniforms.uRect.value = [parts[2] / 100, parts[0] / 100, 1 - parts[2] / 100, (parts[0] + parts[1]) / 100];
+  const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+  const fit = () => renderer.setSize(jarBox.clientWidth, jarBox.clientHeight);
+  function start() {
+    tLabel.image = flat;
+    host.appendChild(gl.canvas);
+    flat.style.visibility = "hidden";
+    fit();
+    new ResizeObserver(fit).observe(jarBox);
+    function frame() {
+      requestAnimationFrame(frame);
+      program.uniforms.uTurn.value = turn.a;
+      renderer.render({ scene: mesh });
+    }
+    requestAnimationFrame(frame);
+  }
+  if (flat.complete && flat.naturalWidth) start();
+  else flat.addEventListener("load", start, { once: true });
+</script>
