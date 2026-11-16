@@ -45,6 +45,9 @@ const scrub = v.kind === "file";
 </section>
 
 <script is:inline data-uses="gsap scroll-trigger">
+  // Guard first: a re-run must not create a second ScrollTrigger and seek listener.
+  if (root.dataset.wvInit) return;
+  root.dataset.wvInit = "1";
   const vid = root.querySelector("[data-scrub]");
   const pic = root.querySelector("[data-zoom]");
   gsap.context(() => {
