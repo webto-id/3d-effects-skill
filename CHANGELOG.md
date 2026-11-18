@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-11-18
+
+- **Coming from general three.js.** `references/recipes.md` has a table of the habits three.js tutorials and other three.js skills teach (`import` from a CDN or `three/addons`, `GLTFLoader` and other loaders, `OrbitControls`, `EffectComposer`, WebGPU / React Three Fiber, a full-window canvas) and what replaces each in a webto section. `SKILL.md` rule 6: this skill wins where they disagree.
+- **A model from elsewhere.** How to check and shrink a Sketchfab or supplier `.glb` with glTF Transform (Draco or meshopt, WebP/JPEG/PNG embedded), and why KTX2 textures and a split `.gltf` never load.
+- `variant-check` 0.1.63 names these habits: `three-import` for an import of three.js, `three-unavailable` for `THREE.X` outside the platform build, each with what to use instead.
+
 ## 0.2.0 — 2026-11-18
 
 - **Real 3D models.** New recipe **3D model turn** (`examples/hero-model-glb.*`): the platform now hosts three.js for variants that declare `data-uses="three"`; a `.glb` (Draco OK, ≤ 10 MB) uploaded in the editor's "🧊 Model 3D" dialog is loaded with `THREE.loadModel(el)`, turned by the scroll and tilted by the pointer, with a poster photo wherever 3D is off. `references/recipes.md` covers what `THREE` holds (no loaders), the Blender export settings, markup, script order and the lint notes. Needs `variant-check` ≥ 0.1.62.

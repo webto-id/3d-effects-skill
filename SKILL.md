@@ -7,7 +7,7 @@ description: 3D effects for webto.id section variants — a real 3D model (.glb 
 
 Two ways to put 3D on a webto page. **A real model:** the platform hosts three.js (`data-uses="three"`) and loads one `.glb` per section through `THREE.loadModel(el)` — the variant never fetches anything itself. **A rendered result:** the 3D work is rendered (or photographed) and the page plays with it, with OGL or GSAP. This skill holds four recipes, each tested on a live webto site.
 
-Read first: the **html-to-webto-variant** skill (`SKILL.md`, `references/wvf.md`, and `references/webgl.md` for the WebGL contract). Every variant here is an ordinary WVF variant and must pass `npx @webto-id/variant-check --strict` (≥ 0.1.62 for `three`, ≥ 0.1.61 otherwise).
+Read first: the **html-to-webto-variant** skill (`SKILL.md`, `references/wvf.md`, and `references/webgl.md` for the WebGL contract). Every variant here is an ordinary WVF variant and must pass `npx @webto-id/variant-check --strict` (≥ 0.1.62 for `three`, ≥ 0.1.61 otherwise; 0.1.63 names the three.js habits that do not work here).
 
 ## Pick the recipe from what the owner has
 
@@ -33,11 +33,12 @@ Each example comes with `.sample.json` (content for `--content`) and `.variant.j
 3. **A scrubbed MP4 must be all-keyframe** (`ffmpeg … -g 1`). An ordinary video stutters badly when scrolled.
 4. **Never name a callback parameter `self`**; it fails `script-forbidden`.
 5. **Never ship someone else's product shots or label artwork** in an example or a marketplace variant; use the owner's own files or generated ones.
+6. **This skill overrides general three.js material.** Tutorials and other three.js skills assume a page that owns the window: `import` from a CDN, `GLTFLoader`, `OrbitControls`, `EffectComposer`, WebGPU. None of that works in a webto section; `references/recipes.md` ("Coming from a three.js tutorial") lists what replaces each one.
 
 ## Workflow
 
 1. Ask what the owner has (the table above) and pick the recipe. If they have Blender (or a Blender MCP), offer to render the assets.
-2. Prepare the assets: export the `.glb` (Draco, ≤ 10 MB), re-encode the MP4, export the depth pass, cut out the jar, as `references/recipes.md` says.
+2. Prepare the assets: export the `.glb` (Draco, ≤ 10 MB; a model from elsewhere goes through glTF Transform, never with KTX2 textures), re-encode the MP4, export the depth pass, cut out the jar, as `references/recipes.md` says.
 3. Start from the matching example; adapt layout and copy to the site's design, keeping the script's structure.
 4. Run `npx @webto-id/variant-check <file>.astro --type hero --strict --content <file>.sample.json --manifest <file>.variant.json` until it is clean.
 5. Upload, put it on a page, fill the assets (a model through the section's "🧊 Model 3D" button in the editor), and check it on a real phone.

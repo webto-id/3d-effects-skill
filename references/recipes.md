@@ -28,7 +28,34 @@ The platform hosts three.js and hands it to a script that declares `data-uses="t
 - `WebGLRenderer` counts against the page's canvas budget, shared with OGL, and caps `setPixelRatio` at 1.5.
 - `THREE` cannot be re-declared or reassigned, and `window.THREE` / `__wvThree` are refused (`script-forbidden`).
 
+**Coming from a three.js tutorial or another three.js skill.** General three.js material (docs, tutorials, skills such as threejs-skills) is written for a page that owns the whole window. On webto, this section wins wherever they disagree. The usual habits and what replaces them:
+
+| Habit | Here | Lint |
+|---|---|---|
+| `import * as THREE from "three"`, an import map, a CDN URL | `<script is:inline data-uses="three">`; `THREE` is the callback's parameter | `three-import` |
+| `three/addons/…`: `GLTFLoader`, `DRACOLoader`, `KTX2Loader`, `RGBELoader`/`HDRLoader`, `TextureLoader` | `THREE.loadModel(el)` for the model; an `<img>` in the markup for a texture; `RoomEnvironment` for reflections | `three-unavailable` |
+| `OrbitControls` and other controls | the scroll turns the model and the pointer tilts it | `three-unavailable` |
+| `EffectComposer`, bloom and other passes | not available; get the look from lights, `toneMapping` and materials | `three-unavailable` |
+| `WebGPURenderer`, TSL, React Three Fiber | `THREE.WebGLRenderer` only | `three-unavailable` |
+| canvas on `document.body` at `window.innerWidth × innerHeight`, `resize` on `window` | the canvas goes in the section's `[data-gl]` box, sized with a `ResizeObserver` on that box | — |
+| the scene just starts | `if (!THREE) return;` first, and a poster `<img>` that stays until the first frame | `three-no-fallback` |
+| `renderer.setPixelRatio(window.devicePixelRatio)` at full value | fine to write; the platform caps it at 1.5 | — |
+
+Everything else in core three.js works as documented: geometry, materials, lights, shadows, `AnimationMixer` for the animations a `.glb` carries (`gltf.animations`), raycasting with the pointer.
+
 **The model (from Blender):** File → Export → glTF 2.0, format **glTF Binary (.glb)**, *Include → Selected Objects*, *Mesh → Apply Modifiers*, *Compression* on (Draco). Keep it under **10 MB** (the upload refuses more; 1–3 MB loads well on phones): decimate dense meshes, textures at 1024–2048 px, JPEG for colour maps. Put the object's base at the origin; the example centres and scales whatever it gets. Materials: Principled BSDF only (that is what glTF carries); metal and glass need `scene.environment` or they render black.
+
+**A model from elsewhere** (Sketchfab, a 3D scan, a supplier's file, or one too big to upload): check it, then shrink it with [glTF Transform](https://gltf-transform.dev):
+
+```
+npx @gltf-transform/cli inspect model.glb
+npx @gltf-transform/cli optimize model.glb model-web.glb --compress draco --texture-compress webp
+```
+
+- **Compression:** Draco or meshopt (both decoded by the platform). Prefer Draco: it is what Blender writes, and the same file opens back in Blender.
+- **Textures: WebP, JPEG or PNG, embedded in the `.glb`.** Never KTX2 / Basis (`--texture-compress ktx2`, `KHR_texture_basisu`): the platform has no KTX2 decoder, the model fails to load and only the poster shows. A `.gltf` with separate `.bin` and image files will not load either; convert it (`npx @gltf-transform/cli copy model.gltf model.glb`).
+- **Size:** ≤ 10 MB is a hard limit; aim for 1–3 MB. If `optimize` leaves it big, shrink the textures (`npx @gltf-transform/cli resize model-web.glb model-small.glb --width 1024 --height 1024`) or decimate the mesh in Blender.
+- Only use a model the owner may publish (their own, or a licence that allows commercial use; credit the author where the licence asks).
 
 **Markup:** one element carries both `data-model={modelUrl}` and `data-edit-model="modelUrl"` (the editor adds a "🧊 Model 3D" button to it, which opens the `.glb` upload); inside it the poster `<img data-edit-image="imageUrl">` (what the editor, reduced motion and slow loads show; the owner can still click it to change the photo) and an empty `<div data-gl class="absolute inset-0">` for the canvas. Size the element with an aspect ratio (`aspect-square w-full max-w-[…]`): the canvas follows it.
 
