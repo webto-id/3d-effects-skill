@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-11-18
+
+- **Real 3D models.** New recipe **3D model turn** (`examples/hero-model-glb.*`): the platform now hosts three.js for variants that declare `data-uses="three"`; a `.glb` (Draco OK, ≤ 10 MB) uploaded in the editor's "🧊 Model 3D" dialog is loaded with `THREE.loadModel(el)`, turned by the scroll and tilted by the pointer, with a poster photo wherever 3D is off. `references/recipes.md` covers what `THREE` holds (no loaders), the Blender export settings, markup, script order and the lint notes. Needs `variant-check` ≥ 0.1.62.
+- Thumbnails now draw WebGL (OGL and three); the rules say so.
+
 ## 0.1.1 — 2026-11-16
 
 Fixes from an end-to-end test in which a fresh agent built a whole template (a jam shop) with only these skills and shipped it to a staging site.
