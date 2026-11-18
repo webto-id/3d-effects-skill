@@ -41,4 +41,4 @@ Each example comes with `.sample.json` (content for `--content`) and `.variant.j
 2. Prepare the assets: export the `.glb` (Draco, ≤ 10 MB; a model from elsewhere goes through glTF Transform, never with KTX2 textures), re-encode the MP4, export the depth pass, cut out the jar, as `references/recipes.md` says.
 3. Start from the matching example; adapt layout and copy to the site's design, keeping the script's structure.
 4. Run `npx @webto-id/variant-check <file>.astro --type hero --strict --content <file>.sample.json --manifest <file>.variant.json` until it is clean.
-5. Upload, put it on a page, fill the assets (a model through the section's "🧊 Model 3D" button in the editor), and check it on a real phone.
+5. Upload, put it on a page, fill the assets (a model through the section's "🧊 Model 3D" button in the editor), and check it on a real phone. A marketplace variant can ship its own `.glb` / `.mp4` in the upload folder as `asset:<filename>` (`references/recipes.md`, "Ship the asset with the variant").

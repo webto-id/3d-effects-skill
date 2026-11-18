@@ -19,6 +19,8 @@ Four recipes, each checked on a live webto site. All four are ordinary WVF varia
 - **With GSAP and OGL in one script**, OGL's `vec.set(x, y)` reads as a GSAP tween and fails `gsap-vars`: assign the components instead (`webgl.md`).
 - Test on a phone before you promise it, iPhone above all.
 
+**Ship the asset with the variant (marketplace).** A variant sold on the marketplace can carry its own `.glb` and `.mp4`, like a photo: put the file next to `variant.json` (or in `assets/`), and in `sample.json` write `"modelUrl": "asset:jar.glb"` / `"videoUrl": "asset:turn.mp4"` (the filename exactly, case included). The upload stores it once on the platform, so the marketplace preview, the thumbnail and every buyer's copy show the seller's own model or video until the buyer uploads theirs. Limits: `.glb` ≤ 10 MB, `.mp4` ≤ 15 MB, ≤ 30 MB of both per bundle, 20 files in all; the upload checks the bytes (glTF 2.0 binary, MP4). In a template bundle, `variant-check site <folder>` (≥ 0.1.64) checks the files and every `asset:` reference. Without an `asset:` the preview falls back to the poster, or to the platform's test jar `/samples/models/jar.glb` that the example uses. Only ship a model or video you own or may sell.
+
 ## 3D model turn (three.js + .glb)
 
 The platform hosts three.js and hands it to a script that declares `data-uses="three"` as the callback's `THREE` (`null` in the editor, for reduced motion, without WebGL and past the page's 4 WebGL canvases: `if (!THREE) return;` is required, lint `three-no-fallback`). What `THREE` holds, and what it does not:

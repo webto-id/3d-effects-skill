@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 — 2026-11-18
+
+- **A variant can ship its own `.glb` and `.mp4`.** The marketplace upload (dashboard folder, Seller MCP `begin_asset_upload`) now takes a `.glb` (≤ 10 MB) and an `.mp4` (≤ 15 MB) beside the images, referenced from `sample.json` as `asset:<filename>`, so the preview, the thumbnail and every buyer's copy show the seller's own model or video. `references/recipes.md` ("Ship the asset with the variant") and the workflow say how. `variant-check site` ≥ 0.1.64 checks them in a template bundle.
+
 ## 0.2.1 — 2026-11-18
 
 - **Coming from general three.js.** `references/recipes.md` has a table of the habits three.js tutorials and other three.js skills teach (`import` from a CDN or `three/addons`, `GLTFLoader` and other loaders, `OrbitControls`, `EffectComposer`, WebGPU / React Three Fiber, a full-window canvas) and what replaces each in a webto section. `SKILL.md` rule 6: this skill wins where they disagree.
